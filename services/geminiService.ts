@@ -1,0 +1,139 @@
+import { GoogleGenAI, Modality, GenerateContentResponse } from "@google/genai";
+
+// IMPORTANT: Do NOT expose your API key in client-side code in a real application.
+// This should be handled by a backend server that makes the API call.
+// This is for demonstration purposes only.
+const apiKey = process.env.API_KEY;
+
+if (!apiKey) {
+  console.warn("API_KEY environment variable not set. AI features will be disabled.");
+}
+
+const getAiClient = () => new GoogleGenAI({ apiKey: apiKey || "" });
+
+export const generateAboutText = async (prompt: string): Promise<string> => {
+  if (!apiKey) {
+    throw new Error("API key is not configured.");
+  }
+  
+  try {
+    const ai = getAiClient();
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: prompt,
+      config: {
+        systemInstruction: "You are a professional copywriter specializing in personal biographies for tech professionals. Write in a confident, human, and engaging tone. Respond only with the generated paragraph text, without any preamble or titles.",
+      }
+    });
+    return response.text;
+  } catch (error) {
+    console.error("Error generating content with Gemini API:", error);
+    throw new Error("Failed to generate text. The API call may have been blocked or encountered an error.");
+  }
+};
+
+// --- AI Advancements Features ---
+
+// 1. Video Generation (Veo)
+export const generateVideo = async (prompt: string, aspectRatio: '16:9' | '9:16'): Promise<string> => {
+    if (!apiKey) throw new Error("API key is not configured.");
+    const ai = getAiClient();
+    
+    let operation = await ai.models.generateVideos({
+      model: 'veo-3.1-fast-generate-preview',
+      prompt,
+      config: {
+        numberOfVideos: 1,
+        resolution: '720p',
+        aspectRatio: aspectRatio
+      }
+    });
+
+    while (!operation.done) {
+      await new Promise(resolve => setTimeout(resolve, 10000));
+      operation = await ai.operations.getVideosOperation({ operation: operation });
+    }
+
+    const downloadLink = operation.response?.generatedVideos?.[0]?.video?.uri;
+    if (!downloadLink) {
+        throw new Error("Video generation succeeded but no download link was found.");
+    }
+
+    const response = await fetch(`${downloadLink}&key=${apiKey}`);
+    if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Video download failed:", errorText);
+        throw new Error(`Failed to download the generated video. Status: ${response.status}`);
+    }
+    const videoBlob = await response.blob();
+    return URL.createObjectURL(videoBlob);
+};
+
+// 2. Low-latency Text Streaming
+export const generateLowLatencyStream = async (prompt: string, onChunk: (chunk: string) => void) => {
+    if (!apiKey) throw new Error("API key is not configured.");
+    const ai = getAiClient();
+    const response = await ai.models.generateContentStream({
+       model: "gemini-2.5-flash-lite",
+       contents: prompt,
+    });
+
+    for await (const chunk of response) {
+      onChunk(chunk.text);
+    }
+};
+
+// 3. Video Understanding
+export const analyzeVideo = async (videoFile: File, prompt: string): Promise<string> => {
+    if (!apiKey) throw new Error("API key is not configured.");
+    const ai = getAiClient();
+    const base64Data = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(videoFile);
+        reader.onload = () => resolve((reader.result as string).split(',')[1]);
+        reader.onerror = error => reject(error);
+    });
+
+    const videoPart = {
+        inlineData: { mimeType: videoFile.type, data: base64Data },
+    };
+    
+    const response = await ai.models.generateContent({
+        model: 'gemini-2.5-pro',
+        contents: { parts: [videoPart, { text: prompt }] }
+    });
+    return response.text;
+};
+
+// 4. Image Editing
+export const editImage = async (imageFile: File, prompt: string): Promise<string> => {
+     if (!apiKey) throw new Error("API key is not configured.");
+     const ai = getAiClient();
+
+    const base64Data = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(imageFile);
+        reader.onload = () => resolve((reader.result as string).split(',')[1]);
+        reader.onerror = error => reject(error);
+    });
+    
+    const imagePart = {
+        inlineData: { mimeType: imageFile.type, data: base64Data }
+    };
+
+    const response: GenerateContentResponse = await ai.models.generateContent({
+        model: 'gemini-2.5-flash-image',
+        contents: { parts: [imagePart, { text: prompt }] },
+        config: {
+            responseModalities: [Modality.IMAGE],
+        }
+    });
+
+    for (const part of response.candidates[0].content.parts) {
+      if (part.inlineData) {
+        return `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
+      }
+    }
+
+    throw new Error("No image was generated by the model.");
+};

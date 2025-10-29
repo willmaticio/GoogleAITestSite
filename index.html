@@ -1,0 +1,177 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>J. Doe | Cybersecurity & AI Engineer</title>
+    <meta name="description" content="Personal portfolio of J. Doe, showcasing projects in Cybersecurity, AI, and Web Development with a sleek cyberpunk aesthetic." />
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://example.com/">
+    <meta property="og:title" content="J. Doe | Cybersecurity & AI Engineer">
+    <meta property="og:description" content="Personal portfolio showcasing projects in Cybersecurity, AI, and Web Development.">
+    <meta property="og:image" content="https://picsum.photos/1200/630">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://example.com/">
+    <meta property="twitter:title" content="J. Doe | Cybersecurity & AI Engineer">
+    <meta property="twitter:description" content="Personal portfolio showcasing projects in Cybersecurity, AI, and Web Development.">
+    <meta property="twitter:image" content="https://picsum.photos/1200/630">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=UnifrakturMaguntia&family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+      /* Define custom font families */
+      body {
+        font-family: 'Inter', sans-serif;
+      }
+      .font-gothic {
+        font-family: 'UnifrakturMaguntia', cursive;
+      }
+      
+      /* Animated grid background */
+      .animated-grid {
+        position: relative;
+        overflow: hidden;
+      }
+      .animated-grid::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-image:
+          linear-gradient(rgba(26, 26, 30, 0.6) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(26, 26, 30, 0.6) 1px, transparent 1px);
+        background-size: 3rem 3rem;
+        animation: pan 120s linear infinite;
+        z-index: 0;
+      }
+
+      html.dark .animated-grid::before {
+         background-image:
+          linear-gradient(rgba(26, 26, 30, 0.6) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(26, 26, 30, 0.6) 1px, transparent 1px);
+      }
+      
+       html.light .animated-grid::before {
+         background-image:
+          linear-gradient(rgba(228, 228, 231, 0.6) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(228, 228, 231, 0.6) 1px, transparent 1px);
+      }
+
+      @keyframes pan {
+        from { background-position: 0 0; }
+        to { background-position: -300rem -300rem; }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .animated-grid::before {
+          animation: none;
+        }
+      }
+      
+      /* Smooth scrolling for anchor links */
+      html {
+        scroll-behavior: smooth;
+      }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.27.0",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "react": "https://aistudiocdn.com/react@^19.2.0"
+  }
+}
+</script>
+</head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+    
+    <!-- 
+    ====================================================================
+    README: How to Customize & Deploy
+    ====================================================================
+
+    1. Changing Color Palette and Fonts:
+       - Colors are defined using Tailwind CSS utility classes in the React components (*.tsx).
+       - To change the primary gold color, search for classes like `text-amber-400`, `border-amber-400`, etc., and replace them.
+       - The core background and text colors are managed by the light/dark mode toggle in `App.tsx` which adds a 'dark' or 'light' class to the <html> element. Look for `bg-zinc-950` (dark) and `bg-zinc-50` (light).
+       - Fonts are imported from Google Fonts in this `index.html` file. You can replace the `<link>` tag to use different fonts. The font classes `font-gothic` and `font-sans` (default) are applied in the components.
+
+    2. Inserting Real Social Links & Contact Info:
+       - Open `components/Contact.tsx`.
+       - Find the `socialLinks` array and replace the "#" placeholders with your actual URLs.
+       - To update the `mailto:` button, find the `<a>` tag with `href="mailto:contact@example.com..."` and replace the email address and subject/body parameters.
+
+    3. Wiring up the Gemini API:
+       - The AI "About Me" generator is in `components/About.tsx`.
+       - The API call logic is in `services/geminiService.ts`.
+       - IMPORTANT: This frontend implementation calls the Gemini API directly. For production, you MUST move this logic to a secure server-side endpoint to protect your API key.
+       - How to create a server endpoint (e.g., using Next.js or Express):
+         
+         // Example Express.js server route (e.g., in server.js)
+         // Make sure to install @google/genai and dotenv
+         /*
+         require('dotenv').config();
+         const express = require('express');
+         const { GoogleGenAI } = require('@google/genai');
+         const app = express();
+         app.use(express.json());
+
+         const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+
+         app.post('/api/gemini', async (req, res) => {
+           const { prompt } = req.body;
+           if (!prompt) {
+             return res.status(400).json({ error: 'Prompt is required' });
+           }
+           try {
+             const response = await ai.models.generateContent({
+                model: 'gemini-2.5-flash',
+                contents: [{ parts: [{ text: prompt }] }],
+             });
+             res.json({ text: response.text });
+           } catch (error) {
+             console.error(error);
+             res.status(500).json({ error: 'Failed to generate content' });
+           }
+         });
+
+         app.listen(3001, () => console.log('Server running on port 3001'));
+         */
+
+       - You would then update the frontend to fetch from this endpoint, as shown in the original user request's example.
+
+    4. How to Deploy:
+       - This is a standard React application. You can deploy it to any static site hosting service.
+       - GitHub Pages:
+         1. `npm install gh-pages --save-dev`
+         2. Add `"homepage": "https://<your-username>.github.io/<your-repo-name>"` to your `package.json`.
+         3. Add scripts to `package.json`: 
+            `"predeploy": "npm run build"`,
+            `"deploy": "gh-pages -d dist"`
+         4. Run `npm run deploy`.
+       - Vercel / Netlify:
+         1. Push your code to a GitHub/GitLab/Bitbucket repository.
+         2. Connect your repository to Vercel or Netlify.
+         3. Configure the build settings (usually auto-detected):
+            - Build Command: `npm run build` or `vite build`
+            - Output Directory: `dist`
+         4. Deploy! Your environment variables (like `API_KEY`) should be set in the project settings on the hosting platform.
+
+    -->
+  </body>
+</html>

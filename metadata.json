@@ -1,0 +1,7 @@
+{
+  "name": "Cyberpunk Personal Portfolio",
+  "description": "A sleek, cyberpunk-themed personal portfolio website featuring sections for Home, About, Projects, and Contact. Includes a dynamic 'About Me' generator powered by the Gemini API, a filterable project gallery, and a light/dark mode toggle.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
